@@ -1,66 +1,158 @@
-## Foundry
+# DAO & Governance
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+[DAOs are not corporations: where decentralization in autonomous organizations matters](https://vitalik.eth.limo/general/2022/09/20/daos.html) - Vitalik  
 
-Foundry consists of:
+[Governance, Part 2: Plutocracy Is Still Bad](https://hackernoon.com/governance-part-2-plutocracy-is-still-bad-1p4zu3p94) - Vitalik  
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+**Very insightful articles**  
+These articles by Vitalik shine a great light on some of the issues with DAOs and the weaknesses we see with them. The former focusing on the difficulties seen in coordinating the management of DAOs with so many participants, and the latter touches on the inherent issue with tying governance to purchasable tokens and how governance by the wealthy is .. less than ideal. 
 
-## Documentation
+DAO stands for Decentralized Autonomous Organization, this is defined as:
 
-https://book.getfoundry.sh/
+*Any group that is governed by a transparent set of rules found on a blockchain or smart contract.*
 
-## Usage
+It's not entirely accurate, but an easy way to think about a DAO is like a big company where all the actions of the company are decided upon by Immutable, Transparent, Decentralized voting mechanisms.
 
-### Build
+This affords the users of a system the power to control and direct how it evolves over time, instead of leaving this power in the hands of centralized control, behind closed doors.
 
-```shell
-$ forge build
+Decentralized voting/governance is the cornerstone of how these systems operate!
+
+Let's take a closer look at an active an live DAO Today. Compound protocol is setting the standard for how modern DAOs should operate.
+
+## Compound
+[Compound Finance](https://compound.finance/) is a borrowing and lending protocol which allows users to borrow and lend digital assets. In Compound, when a decision arises such as listing a new token, or changing interest rates, the decision is handled through their governance mechanism, their DAO.
+
+We can access their governance system, and view past and pending proposals, through the Governance UI of their website.
+
+
+![intro1](images/intro1.png)  
+
+If we navigate to one [specific proposal](https://compound.finance/governance/proposals/256), we can gain a lot of insight into how this process works. The proposal view breaks down the votes received, the number of participating addresses and importantly the Proposal History. We're able to see that every proposal begins with a transaction.  
+
+![intro2](images/intro2.png)  
+
+Let's take a closer look at this [create transaction](https://etherscan.io/tx/0xbe0b8152195a29c7ac61144dbaa9f98b00fbb7c59d15b19e96105a42195fa829)! This transaction will show us all of the data submitted to the proposal.
+
+![intro3](images/intro3.png)  
+
+Decoding this function selector shows a pretty standard propose function. Typically a proposal will be broken down into:
+
+* List of addresses to call
+
+* List of functions to call on those addresses
+
+* Arguments to pass those functions
+
+* A description of what the proposal is
+
+```bash
+propose(address[],uint256[],string[],bytes[],string)
 ```
+Often the functions being called are part of the DAO's functionality and typically have access controls which assure only the DAO Governance Contract can call them.
 
-### Test
+Once created, and after a brief delay configured by the protocol, a proposal becomes active for voting. This is a predetermined duration during which members of the DAO can vote to accept or refuse a proposal
 
-```shell
-$ forge test
-```
+![intro4](images/intro4.png)  
 
-### Format
+Voting can happen directly on-chain of course, or through the provided app interface provided [here](https://app.compound.finance/vote?market=usdc-mainnet).
 
-```shell
-$ forge fmt
-```
+![intro5](images/intro5.png)  
 
-### Gas Snapshots
+If voting succeeds, a proposal will be queued for execution. This queue period affords time before execution of a proposal for a number of things including:
 
-```shell
-$ forge snapshot
-```
+* security checks
 
-### Anvil
+* challenges to the proposal
 
-```shell
-$ anvil
-```
+* an exit opportunity for stakeholders who disagree with the proposal
 
-### Deploy
+* preparation for execution
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+Following this timelock period, the proposal is executed!
 
-### Cast
+>❗ NOTE
+Often just submitting a proposal isn't enough to garner the votes needed for it to be executed. Often some type of discussion forum or community space is needed to allow users to attack and defend a proposal.
 
-```shell
-$ cast <subcommand>
-```
+## DAO Architecture
 
-### Help
+**Voting Mechanism**
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+This is the means by which a community engages with the protocol and contributes to the decisions being made. This is a fundamental part of how a DAO functions.
+
+One consideration that must be made is: **How do we identify stakeholders, or members of the community, eligible to vote?**
+
+Often this is handled via an ERC20 or an NFT of some kind, but this runs the risk of being less fair if the tokens are more available to the wealthy than others. This is not dissimilar to Web2 companies and how the voting power of company shares works.
+
+One methodology is the "Skin in the Game" method whereby voting records are recording and negative outcomes result in tokens/voting power being lost. This is beneficial in that it holds users accountable for the decisions they make. A downside to this approach is how difficult it can be to reach a consensus on what a bad outcome is.
+
+A third approach is something called "Proof of Personhood Participation" and while potentially ideal, isn't something with a sound implementation yet. The idea would be a method by which someone can be verified as being a single human entity, but the logics of this are difficult and rub up against anonymity. Some projects like WorldCoin are trying to find solutions here!
+
+**Voting Implementation**
+
+**_On-chain Voting:_**
+
+Handled via smart contract, votes are placed by calling functions to this contract. A major drawback of this is the gas costs associated with placing this vote transaction. Even small costs in gas can be enough to dissuade participation, and that's to say nothing of transactions which happen to be expensive due to congestion or poor code.
+
+**_Off-chain Voting:_**
+
+What if I told you, you could sign a transaction and vote in a decentralized way without spending any gas?
+
+Transactions can actually be signed without being sent to the blockchain. What this means is a protocol could take a bunch of signed transactions, uploaded to a decentralized database (like IPFS), calculate the votes and then batch submit them to the blockchain, maybe even leveraging an oracle to ensure decentrality. This can reduce voting costs by up to 99%!
+
+It's important to be careful the the implementation of any off-chain features, if you introduce a centralized component, the decentrality of your DECENTRALIZED autonomous organization goes away.
+
+**Tools**
+There are a number of no-code/low-code tools that can facilitate a DAO, services like [DAO Stack](https://www.alchemy.com/dapps/daostack), [Aragon](https://aragon.org/), [Colony](https://colony.io/) and [DAO House](https://www.daohouse.global/) can greatly assist in the operations side of running a DAO.
+
+Additional tools with more granular control and integrations include things like [Snapshot](https://snapshot.org/) which allows a team to glean sentiment of a community before execution while also including functionality to manage and execute proposals if desired. Other tools to check out include [Zodiac](https://github.com/gnosisguild/zodiac) a development library offered by Gnosis and our old friends [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/governance). 
+
+Another "tool" to mention is [Safe](https://safe.global/) (previously Gnosis Safe), or really any multisig wallet solution. Any protocol is going to have some degree of centrality, especially as it first launches. A multisig wallet will decentralize control to some degree while a protocol grows into adopting fully decentralized governance.
+
+---
+
+## About Project
+The project will be a DAO which employs an ERC20 governance token to allocate voting power and determine membership.
+
+While this is a very common/simple way to deploy a governance protocol, maybe you should not default to this. It seems simple to deploy and manage at first, but issues inevitably arise when trading of governance tokens comes into play and speculation on price throws governance to the wind. A better solution can be found for this problem.
+
+`src/Box.sol`: This contract is only going to serve as the contract which is managed by our DAO. In practice this contract could be quite complex, or multiple contracts could be managed by a single DAO, but for our purposes we'll keep things concise. The goal is to understanding how the voting mechanism allows the DAO to autonomously execute function calls.
+
+`src/GovToken.sol`: The governance token, standard [OpenZeppelin's Contract Wizard](https://wizard.openzeppelin.com/) is used for this contract. select ERC20 and votes.
+
+![governance-tokens1](images/governance-tokens1.png)  
+
+`src/Governor.sol`:This is the heart of the DAO which manages the proposal and voting functionality died to the protocol's governance. Here also [OpenZeppelin's Contract Wizard](https://wizard.openzeppelin.com/) is used. 
+
+By selecting the `Governor` configuration, we're presenting with a number of options to customize.
+
+![governor-contract1](images/governance-tokens1.png)
+
+Voting Delay - Time between proposal creation and the start of voting
+
+Voting Period - How long votes may be submitted for
+
+Proposal Threshold - Minimum number of votes an account must have to create a proposal. In other words, a user needs to have a certain amount of voting power (i.e., tokens) to propose a change or decision  
+
+Think of it like a "voting power requirement" for proposing an idea. If a user doesn't meet this threshold, they can't propose a change, even if they want to.
+
+Quorum %/# - his is the percentage or number of participants in a vote required for a vote to be considered valid and pass. In other words, it's the minimum number of users that need to participate in the vote for the outcome to be valid.
+
+Here's an example:
+
+* Quorum %/#: 75% of participants
+
+* Number of participants: 100
+
+* Quorum: 75 (75% of 100)
+
+If less than 75 participants vote, the vote is not considered valid and the outcome is not binding  
+
+Think of it like a "participation requirement" for the vote to be valid. If not enough users participate, the vote is not considered legitimate.
+
+Updatable Settings - allows the above configurations to be updated in future
+
+Votes - This denotes how voting power is derived be it through ERC20s or possessing NFTs etc
+
+Timelock - Configuration related to delays and timelines for various parts of the DAO protocol
+
+---
